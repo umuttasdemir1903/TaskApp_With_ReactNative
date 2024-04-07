@@ -1,18 +1,21 @@
 //import liraries
-import React, {useState} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import uuid from 'react-native-uuid';
 import {Input, Button, Radio, RadioGroup} from '@ui-kitten/components';
 import {Formik} from 'formik';
 import CustomDatePicker from '../../components/uı/customDatePicker';
 import {taskSchema} from '../../utils/validations';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {status} from '../../utils/constants';
 const AddTask = () => {
   const saveTask = async values => {
     try {
-      await AsyncStorage.setItem('task', JSON.stringify(values));
-      console.log('balarılı');
+      const savedTasks = await AsyncStorage.getItem('tasks');
+      let myTask = savedTasks ? JSON.parse(savedTasks) : [];
+      myTask.push(values);
+      await AsyncStorage.setItem('tasks', JSON.stringify(myTask));
     } catch (e) {
-      //save error
       console.log(e);
     }
   };
@@ -20,11 +23,13 @@ const AddTask = () => {
     <View style={styles.container}>
       <Formik
         initialValues={{
-          title: '',
-          description: '',
+          id: uuid.v4(),
+          description: 'Yazılım ile ilgili ders çalışılacak',
+          title: 'Yazılım Dersi',
           startDate: null,
           endDate: null,
           category: null,
+          status: status.ONGOING,
         }}
         validationSchema={taskSchema}
         onSubmit={values => saveTask(values)}>
@@ -33,7 +38,7 @@ const AddTask = () => {
             <Input
               size="large"
               style={{marginVertical: 10}}
-              date={values.title}
+              value={values.title}
               label={'Title'}
               placeholder=""
               onChangeText={handleChange('title')}
